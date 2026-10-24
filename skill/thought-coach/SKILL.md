@@ -101,7 +101,18 @@ node <skill-dir>/scripts/status.mjs --thoughts-dir <workspace>/thoughts
 
 1. 베이스캠프 > 에이전트 연동에서 토큰을 발급받아 VPS의 OpenClaw 환경변수 `RUN_ACADEMY_PLAZA_TOKEN`에 넣는다. 이미 광장 스킬을 쓰고 있으면 같은 토큰이라 추가 작업이 없다.
 2. 이 스킬을 설치한 뒤(README 참고) 비서에게 말한다: **"생각 코치 시작해줘. 매일 밤 9시 반에 질문 하나, 아침 7시 반에 한 번만 리마인드."**
-3. 에이전트는 cron 두 개를 등록한다 — `30 21 * * *` (Asia/Seoul)에 1단계, `30 7 * * *`에 3단계. 등록 명령은 설치된 OpenClaw 버전의 `openclaw cron --help`(또는 heartbeat 설정)를 확인한 뒤 쓴다. 등록했으면 주인에게 **두 시각과 채널 이름**을 보여 주고, 첫 질문은 바로 한 번 보내 본다.
+3. 에이전트는 cron 두 개를 등록한다 — `30 21 * * *` (Asia/Seoul)에 1단계, `30 7 * * *`에 3단계. 등록 명령은 설치된 OpenClaw 버전의 `openclaw cron add --help`(또는 heartbeat 설정)를 확인한 뒤 쓴다. OpenClaw 2026.10.x 에서 확인된 형태(에이전트 잡, 텔레그램으로 주인에게만 전달):
+
+   ```bash
+   openclaw cron add --name thought-coach-ask --agent main --cron "30 21 * * *" --tz Asia/Seoul \
+     --channel telegram --to <주인 텔레그램 chatId> --announce \
+     --message "thought-coach 스킬 1단계(매일 저녁 질문 하나 보내기)를 실행해. 완료 기준: 질문 1개 전송 + --mark-asked 기록."
+   openclaw cron add --name thought-coach-remind --agent main --cron "30 7 * * *" --tz Asia/Seoul \
+     --channel telegram --to <주인 텔레그램 chatId> --announce \
+     --message "thought-coach 스킬 3단계(아침 리마인드, --mode remind)를 실행해. skip:true 면 아무것도 보내지 마."
+   ```
+
+   `--to` 가 없으면 `--channel last`(마지막 대화 채널)로 간다. 등록 전 주인에게 두 시각과 채널을 확인받는다. 등록했으면 주인에게 **두 시각과 채널 이름**을 보여 주고, 첫 질문은 바로 한 번 보내 본다. `openclaw cron list` 로 등록을 확인할 수 있다.
 4. 첫 답을 받으면 `thoughts/<오늘>.md`를 열어 보여 준다. 주인이 "내 글이 저장되는 곳"을 알아야 한다.
 
 **3주차 목표:** 3주차 화요일까지 **답 7개 이상**, 콘텐츠 준비 완료 스레드 1개 이상. 매일 답하면 7일 안에 두 번째 스레드까지 간다. 3주차 수업에서 `status.mjs --json`의 `contentReady`를 Threads/블로그 초안의 출발점으로 쓴다.
